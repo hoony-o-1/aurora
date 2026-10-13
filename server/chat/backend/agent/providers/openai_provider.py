@@ -23,7 +23,8 @@ class OpenAIProvider(BaseLLMProvider):
     def __init__(self):
         super().__init__()
         self.api_key = os.getenv("OPENAI_API_KEY")
-        # OpenAI uses their default base URL (no need to specify)
+        # Use OPENAI_BASE_URL env var if set, otherwise fall back to OpenAI's default
+        self.base_url = os.getenv("OPENAI_BASE_URL") or None
 
     def get_chat_model(
         self,
@@ -65,6 +66,10 @@ class OpenAIProvider(BaseLLMProvider):
             "max_retries": 3,
             "stream_usage": True,
         }
+
+        if self.base_url:
+            config["openai_api_base"] = self.base_url
+            logger.info(f"Using custom OpenAI base URL: {self.base_url}")
 
         # Reasoning models (GPT-5+, o-series) require the Responses API
         # (/v1/responses) when tools are combined with reasoning effort —
